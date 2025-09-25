@@ -1,4 +1,4 @@
-// app/page.tsx (or wherever this Page is)
+// app/page.tsx
 import ClientPage from "./ClientPage";
 import { promises as fs } from "fs";
 import path from "path";
@@ -9,9 +9,8 @@ export const dynamic = "force-dynamic";
 const DEFAULT_PAGE_SIZE = 60;
 const MAX_PAGE_SIZE = 200;
 
-// 🔁 change this to point to the top-level "images" folder
-const IMAGE_DIR = ["images"];
-
+// ✅ look inside public/images (served at /images/* on Vercel)
+const IMAGE_DIR = ["public", "images"];
 const ACCEPT = /\.(png|jpe?g|webp|gif|avif)$/i;
 
 function imageRoot() {
@@ -24,32 +23,47 @@ async function listImages(q?: string) {
   try {
     items = await fs.readdir(dir);
   } catch {
+    // folder missing or unreadable
     return [];
   }
   const filtered = items.filter((f) => ACCEPT.test(f));
-  if (!q) return filtered.sort();
+  if (!q) return filtered.sort((a, b) => a.localeCompare(b));
   const needle = q.trim().toLowerCase();
-  return filtered.filter((f) => f.toLowerCase().includes(needle)).sort();
+  return filtered
+    .filter((f) => f.toLowerCase().includes(needle))
+    .sort((a, b) => a.localeCompare(b));
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default async function Page(props: any) {
-  const sp = (props.searchParams ?? {}) as Record<
-    string,
-    string | string[] | undefined
-  >;
+// types for async searchParams (Next 15+)
+type SearchParams =
+  | Promise<Record<string, string | string[] | undefined>>
+  | Record<string, string | string[] | undefined>;
 
-  const rawPer = Math.min(
-    Math.max(parseInt((sp.per as string) || ""), 1) || DEFAULT_PAGE_SIZE,
-    MAX_PAGE_SIZE
-  );
-  const per = Number.isFinite(rawPer) ? rawPer : DEFAULT_PAGE_SIZE;
+export default async function Page(props: { searchParams?: SearchParams }) {
+  // ⬇️ await when it's a Promise (server component API is async now)
+  const sp =
+    typeof (props.searchParams as any)?.then === "function"
+      ? await (props.searchParams as Promise<
+          Record<string, string | string[] | undefined>
+        >)
+      : ((props.searchParams ?? {}) as Record<
+          string,
+          string | string[] | undefined
+        >);
+
+  const perRaw = parseInt((sp.per as string) || "", 10);
+  const per = Number.isFinite(perRaw)
+    ? Math.min(Math.max(perRaw, 1), MAX_PAGE_SIZE)
+    : DEFAULT_PAGE_SIZE;
 
   const q = (sp.q as string)?.trim() || undefined;
+
   const all = await listImages(q);
   const total = all.length;
 
-  const rawPage = Math.max(parseInt((sp.page as string) || ""), 1) || 1;
+  const pageRaw = parseInt((sp.page as string) || "", 10);
+  const rawPage = Number.isFinite(pageRaw) ? Math.max(pageRaw, 1) : 1;
+
   const totalPages = Math.max(Math.ceil(total / per), 1);
   const page = Math.min(rawPage, totalPages);
 
@@ -61,7 +75,7 @@ export default async function Page(props: any) {
 
   return (
     <ClientPage
-      images={slice} // just the filenames
+      images={slice} // filenames ONLY; render with /images/${encodeURIComponent(name)}
       total={total}
       page={page}
       totalPages={totalPages}
