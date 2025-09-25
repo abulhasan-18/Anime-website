@@ -16,7 +16,8 @@ interface ClientPageProps {
 }
 
 function fileURL(name: string) {
-  return `/images/${encodeURIComponent(name)}`;
+  // pass the raw filename; Next/Image will encode it for you
+  return `/images/${name}`;
 }
 
 function FireBG() {
