@@ -5,11 +5,13 @@ import path from "path";
 import { randomInt } from "crypto";
 
 export const dynamic = "force-dynamic";
+// (optional, but explicit) ensure Node runtime for fs:
+export const runtime = "nodejs";
 
 const DEFAULT_PAGE_SIZE = 60;
 const MAX_PAGE_SIZE = 200;
 
-// ✅ look inside public/images (served at /images/* on Vercel)
+// look inside public/images (served at /images/* on Vercel)
 const IMAGE_DIR = ["public", "images"];
 const ACCEPT = /\.(png|jpe?g|webp|gif|avif)$/i;
 
@@ -23,7 +25,6 @@ async function listImages(q?: string) {
   try {
     items = await fs.readdir(dir);
   } catch {
-    // folder missing or unreadable
     return [];
   }
   const filtered = items.filter((f) => ACCEPT.test(f));
@@ -34,22 +35,15 @@ async function listImages(q?: string) {
     .sort((a, b) => a.localeCompare(b));
 }
 
-// types for async searchParams (Next 15+)
-type SearchParams =
-  | Promise<Record<string, string | string[] | undefined>>
-  | Record<string, string | string[] | undefined>;
-
-export default async function Page(props: { searchParams?: SearchParams }) {
-  // ⬇️ await when it's a Promise (server component API is async now)
-  const sp =
-    typeof (props.searchParams as any)?.then === "function"
-      ? await (props.searchParams as Promise<
-          Record<string, string | string[] | undefined>
-        >)
-      : ((props.searchParams ?? {}) as Record<
-          string,
-          string | string[] | undefined
-        >);
+// ✅ TYPE IT LIKE NEXT EXPECTS: Promise-based searchParams
+type SP = Record<string, string | string[] | undefined>;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: Promise<SP>;
+}) {
+  // await the promise (Next 15 async dynamic API)
+  const sp = (await searchParams) ?? {};
 
   const perRaw = parseInt((sp.per as string) || "", 10);
   const per = Number.isFinite(perRaw)
@@ -75,7 +69,7 @@ export default async function Page(props: { searchParams?: SearchParams }) {
 
   return (
     <ClientPage
-      images={slice} // filenames ONLY; render with /images/${encodeURIComponent(name)}
+      images={slice}
       total={total}
       page={page}
       totalPages={totalPages}
