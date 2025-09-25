@@ -1,48 +1,34 @@
 // app/page.tsx
 import ClientPage from "./ClientPage";
-import { promises as fs } from "fs";
-import path from "path";
 import { randomInt } from "crypto";
 
+// IMPORTANT: JSON lives in /public, import is resolved at build time
+// If your tsconfig has "resolveJsonModule": true, this just works.
+// Otherwise, use:  import manifest from "../../public/images-manifest.json" assert { type: "json" };
+import manifest from "../../public/images-manifest.json";
+
 export const dynamic = "force-dynamic";
-// (optional, but explicit) ensure Node runtime for fs:
 export const runtime = "nodejs";
 
 const DEFAULT_PAGE_SIZE = 60;
 const MAX_PAGE_SIZE = 200;
 
-// look inside public/images (served at /images/* on Vercel)
-const IMAGE_DIR = ["public", "images"];
 const ACCEPT = /\.(png|jpe?g|webp|gif|avif)$/i;
 
-function imageRoot() {
-  return path.join(process.cwd(), ...IMAGE_DIR);
-}
-
-async function listImages(q?: string) {
-  const dir = imageRoot();
-  let items: string[] = [];
-  try {
-    items = await fs.readdir(dir);
-  } catch {
-    return [];
-  }
-  const filtered = items.filter((f) => ACCEPT.test(f));
-  if (!q) return filtered.sort((a, b) => a.localeCompare(b));
-  const needle = q.trim().toLowerCase();
-  return filtered
-    .filter((f) => f.toLowerCase().includes(needle))
-    .sort((a, b) => a.localeCompare(b));
-}
-
-// ✅ TYPE IT LIKE NEXT EXPECTS: Promise-based searchParams
 type SP = Record<string, string | string[] | undefined>;
+
+function listFromManifest(q?: string) {
+  const all = (manifest?.files ?? []).filter((f: string) => ACCEPT.test(f));
+  if (!q) return all;
+  const needle = q.trim().toLowerCase();
+  return all.filter((f: string) => f.toLowerCase().includes(needle));
+}
+
 export default async function Page({
   searchParams,
 }: {
   searchParams?: Promise<SP>;
 }) {
-  // await the promise (Next 15 async dynamic API)
   const sp = (await searchParams) ?? {};
 
   const perRaw = parseInt((sp.per as string) || "", 10);
@@ -52,7 +38,7 @@ export default async function Page({
 
   const q = (sp.q as string)?.trim() || undefined;
 
-  const all = await listImages(q);
+  const all = listFromManifest(q);
   const total = all.length;
 
   const pageRaw = parseInt((sp.page as string) || "", 10);
@@ -65,7 +51,7 @@ export default async function Page({
   const end = Math.min(start + per, total);
   const slice = all.slice(start, end);
 
-  const headerPick = all.length ? all[randomInt(all.length)] : null;
+  const headerPick = total ? all[randomInt(total)] : null;
 
   return (
     <ClientPage
