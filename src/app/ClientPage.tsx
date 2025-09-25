@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
 
 interface ClientPageProps {
@@ -106,7 +107,7 @@ export default function ClientPage({
           <div className="relative">
             <div className="mx-auto max-w-md overflow-hidden rounded-2xl border border-zinc-200 shadow-xl dark:border-zinc-800">
               {headerSrc ? (
-                <img
+                <Image
                   src={headerSrc}
                   alt={headerPick ?? "Header image"}
                   loading="eager"
@@ -190,7 +191,7 @@ export default function ClientPage({
                   className="group relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
                 >
                   <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-red-500/20 group-hover:ring-red-500/60" />
-                  <img
+                  <Image
                     src={url}
                     alt={name}
                     loading="lazy"

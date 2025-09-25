@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import ClientPage from "./ClientPage";
 import { promises as fs } from "fs";
 import path from "path";
