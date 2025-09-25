@@ -97,9 +97,9 @@ export default function ClientPage({
               </span>
             </h1>
             <p className="mt-4 max-w-[65ch] text-lg leading-relaxed text-zinc-700 dark:text-zinc-300">
-              Seamless gallery experience with smart pagination—built to stay
-              fast even with very large libraries. Hover any card to{" "}
-              <strong>preview</strong> or <strong>download</strong>.
+              Seamless gallery experience where you can download images for your
+              Mobile Wallpaper fast even with very large libraries. Hover any
+              card to <strong>preview</strong> or <strong>download</strong>.
             </p>
           </div>
 

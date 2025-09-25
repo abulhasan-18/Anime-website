@@ -18,9 +18,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Anime Gallery — Fire Red Theme",
+  title: "Anime Gallery",
   description:
-    "Modern anime gallery with dark/light, blazing red vibe, server-side pagination, and one-click downloads. Drop images into /public/images and it just works.",
+    "Modern anime gallery where u can download 4k images for mobile wallpaper and more.",
   keywords: [
     "Anime",
     "Gallery",
