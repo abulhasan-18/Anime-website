@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/gen-manifest.mjs",
+    "predev": "node scripts/drive-manifest.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -21,8 +21,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.2",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
+    "googleapis": "^160.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

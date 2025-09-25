@@ -1,10 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import React from "react";
 
+type DriveItem = { id: string; name: string };
+
 interface ClientPageProps {
-  images: string[];
+  images: DriveItem[];
   total: number;
   page: number;
   totalPages: number;
@@ -12,13 +13,12 @@ interface ClientPageProps {
   q?: string;
   start: number;
   end: number;
+  // headerPick is a Drive file *id* (or null)
   headerPick: string | null;
 }
 
-function fileURL(name: string) {
-  // pass the raw filename; Next/Image will encode it for you
-  return `/images/${name}`;
-}
+const proxyViewURL = (id: string) => `/api/drive/${id}`;
+const proxyDownloadURL = (id: string) => `/api/drive/${id}?download=1`;
 
 function FireBG() {
   return (
@@ -43,7 +43,7 @@ function pageURL(base: string, page: number, per: number, q?: string) {
   u.searchParams.set("page", String(page));
   u.searchParams.set("per", String(per));
   if (q) u.searchParams.set("q", q);
-  return u.search; // only the ?query part
+  return u.search;
 }
 
 export default function ClientPage({
@@ -57,7 +57,7 @@ export default function ClientPage({
   end,
   headerPick,
 }: ClientPageProps) {
-  const headerSrc = headerPick ? fileURL(headerPick) : null;
+  const headerSrc = headerPick ? proxyViewURL(headerPick) : null;
 
   return (
     <main className="relative min-h-[100dvh] overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 selection:bg-red-300 selection:text-black">
@@ -99,7 +99,7 @@ export default function ClientPage({
             </h1>
             <p className="mt-4 max-w-[65ch] text-lg leading-relaxed text-zinc-700 dark:text-zinc-300">
               Seamless gallery experience where you can download images for your
-              Mobile Wallpaper fast even with very large libraries. Hover any
+              Mobile Wallpaper, still snappy with massive libraries. Hover any
               card to <strong>preview</strong> or <strong>download</strong>.
             </p>
           </div>
@@ -108,16 +108,13 @@ export default function ClientPage({
           <div className="relative">
             <div className="mx-auto max-w-md overflow-hidden rounded-2xl border border-zinc-200 shadow-xl dark:border-zinc-800">
               {headerSrc ? (
-                <div className="relative h-72 w-full">
-                  <Image
-                    src={headerSrc}
-                    alt={headerPick ?? "Header image"}
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 100vw, 480px"
-                    className="object-cover"
-                  />
-                </div>
+                <img
+                  src={headerSrc}
+                  alt="Header image"
+                  loading="eager"
+                  decoding="async"
+                  className="h-72 w-full object-cover"
+                />
               ) : (
                 <div className="grid h-72 place-items-center bg-gradient-to-br from-red-600/20 via-rose-600/15 to-orange-500/20">
                   <span className="text-7xl">🦊</span>
@@ -180,39 +177,44 @@ export default function ClientPage({
         {images.length === 0 ? (
           <div className="rounded-xl border-2 border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
             <p className="text-zinc-600 dark:text-zinc-300">
-              No images found. Drop files into{" "}
-              <code className="font-mono">/images</code>
-              {q ? <> or clear your search query.</> : null}
+              No images found. Add files to your Drive folder and re-run the
+              manifest.
+              {q ? <> Or clear your search.</> : null}
             </p>
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-            {images.map((name) => {
-              const url = fileURL(name);
+            {images.map(({ id, name }) => {
+              const url = proxyViewURL(id);
               return (
                 <article
-                  key={name}
+                  key={id}
                   className="group relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
                 >
                   <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-red-500/20 group-hover:ring-red-500/60" />
 
                   {/* image box with fixed height to prevent CLS */}
                   <div className="relative h-64 w-full">
-                    <Image
+                    <img
                       src={url}
                       alt={name}
-                      fill
                       loading="lazy"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                      className="object-cover transition duration-300 group-hover:scale-[1.02] group-hover:brightness-110"
+                      decoding="async"
+                      className="h-64 w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:brightness-110"
                     />
                   </div>
 
                   <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-2 text-xs dark:border-zinc-800">
-                    <div className="truncate max-w-[75%]" title={name}>
+                    <div className="truncate max-w-[70%]" title={name}>
                       {name}
                     </div>
-                    <Mark />
+                    <a
+                      href={proxyDownloadURL(id)}
+                      download
+                      className="rounded-md border border-red-500/40 bg-red-600/10 px-2 py-0.5 font-medium text-red-700 hover:bg-red-600/15 dark:text-red-300"
+                    >
+                      DL
+                    </a>
                   </div>
                 </article>
               );

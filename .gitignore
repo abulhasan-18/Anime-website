@@ -4,9 +4,13 @@
 /node_modules
 /.pnp
 .pnp.js
+/secrets/
+/secrets
+
 
 # testing
 /coverage
+
 
 # next.js
 /.next/
