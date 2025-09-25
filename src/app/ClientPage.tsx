@@ -58,6 +58,7 @@ export default function ClientPage({
   headerPick,
 }: ClientPageProps) {
   const headerSrc = headerPick ? proxyViewURL(headerPick) : null;
+  const headerDL = headerPick ? proxyDownloadURL(headerPick) : null;
 
   return (
     <main className="relative min-h-[100dvh] overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 selection:bg-red-300 selection:text-black">
@@ -104,22 +105,12 @@ export default function ClientPage({
             </p>
           </div>
 
-          {/* Random header image */}
+          {/* Random header image (click to download) */}
           <div className="relative">
             <div className="mx-auto max-w-md overflow-hidden rounded-2xl border border-zinc-200 shadow-xl dark:border-zinc-800">
-              {headerSrc ? (
-                <img
-                  src={headerSrc}
-                  alt="Header image"
-                  loading="eager"
-                  decoding="async"
-                  className="h-72 w-full object-cover"
-                />
-              ) : (
-                <div className="grid h-72 place-items-center bg-gradient-to-br from-red-600/20 via-rose-600/15 to-orange-500/20">
-                  <span className="text-7xl">🦊</span>
-                </div>
-              )}
+              <div className="grid h-72 place-items-center bg-gradient-to-br from-red-600/20 via-rose-600/15 to-orange-500/20">
+                <span className="text-7xl">🦊</span>
+              </div>
             </div>
           </div>
         </div>
@@ -185,7 +176,8 @@ export default function ClientPage({
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             {images.map(({ id, name }) => {
-              const url = proxyViewURL(id);
+              const viewURL = proxyViewURL(id);
+              const dlURL = proxyDownloadURL(id);
               return (
                 <article
                   key={id}
@@ -193,28 +185,29 @@ export default function ClientPage({
                 >
                   <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-red-500/20 group-hover:ring-red-500/60" />
 
-                  {/* image box with fixed height to prevent CLS */}
-                  <div className="relative h-64 w-full">
+                  {/* click image to download */}
+                  <a
+                    href={dlURL}
+                    download
+                    className="relative block h-64 w-full"
+                    title={`Download ${name}`}
+                  >
                     <img
-                      src={url}
+                      src={viewURL}
                       alt={name}
                       loading="lazy"
                       decoding="async"
                       className="h-64 w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:brightness-110"
                     />
-                  </div>
+                    <span className="pointer-events-none absolute right-2 top-2 rounded-md bg-black/50 px-2 py-1 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100">
+                      Download
+                    </span>
+                  </a>
 
                   <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-2 text-xs dark:border-zinc-800">
                     <div className="truncate max-w-[70%]" title={name}>
                       {name}
                     </div>
-                    <a
-                      href={proxyDownloadURL(id)}
-                      download
-                      className="rounded-md border border-red-500/40 bg-red-600/10 px-2 py-0.5 font-medium text-red-700 hover:bg-red-600/15 dark:text-red-300"
-                    >
-                      DL
-                    </a>
                   </div>
                 </article>
               );

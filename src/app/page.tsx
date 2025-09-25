@@ -7,7 +7,6 @@ export const dynamic = "force-dynamic";
 type DriveItem = { id: string; name: string };
 const manifest = manifestJson as { files: DriveItem[] };
 
-const DEFAULT_PAGE_SIZE = 60;
 const MAX_PAGE_SIZE = 200;
 
 type SP = Record<string, string | string[] | undefined>;
