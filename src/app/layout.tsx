@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -62,6 +63,7 @@ export default function RootLayout({
         }}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
