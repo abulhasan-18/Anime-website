@@ -1,32 +1,38 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
+  variable: "--font-jakarta",
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+
+const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-jbmono",
+  weight: ["400", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Anime Gallery — Fire Red Theme",
   description:
-    "Modern anime gallery with blazing red vibes. Browse and download thousands of images from /public/images with dark/light mode and server-side pagination.",
+    "Modern anime gallery with dark/light, blazing red vibe, server-side pagination, and one-click downloads. Drop images into /public/images and it just works.",
   keywords: [
     "Anime",
     "Gallery",
     "Next.js",
     "Dark Mode",
-    "Download Images",
-    "Red Theme",
+    "Download",
+    "Image Grid",
+    "Fire Theme",
   ],
   openGraph: {
     title: "Anime Gallery — Fire Red Theme",
     description:
-      "Sleek, modern anime gallery with pagination and instant downloads.",
+      "Sleek anime gallery with pagination, search, and instant downloads.",
     type: "website",
     images: [{ url: "/icons/fire.png" }],
   },
@@ -34,11 +40,11 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Anime Gallery — Fire Red Theme",
     description:
-      "Sleek, modern anime gallery with pagination and instant downloads.",
+      "Sleek anime gallery with pagination, search, and instant downloads.",
     images: ["/icons/fire.png"],
   },
   icons: {
-    icon: [{ url: "/icons/fire.png" }], // <— custom icon (not favicon.ico)
+    icon: [{ url: "/icons/fire.png" }], // custom, not favicon.ico
     apple: [{ url: "/icons/fire.png" }],
     shortcut: ["/icons/fire.png"],
   },
@@ -50,7 +56,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
+        className={`${jakarta.variable} ${jetbrains.variable} antialiased bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
+        style={{
+          fontFamily: "var(--font-jakarta), ui-sans-serif, system-ui",
+        }}
       >
         {children}
       </body>

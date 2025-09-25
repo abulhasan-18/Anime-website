@@ -3,22 +3,17 @@ import { promises as fs } from "fs";
 import path from "path";
 import { randomInt } from "crypto";
 
-// ✅ We want fresh reads as you add images without rebuilding
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // reflect new files without rebuild
 
-type SP = {
-  page?: string;
-  per?: string;
-  q?: string; // optional: filter by filename
-};
+type SP = { page?: string; per?: string; q?: string };
 
-// --------- CONFIG ---------
-const DEFAULT_PAGE_SIZE = 60; // tweak as you like (keeps each page light)
-const MAX_PAGE_SIZE = 200; // safety guard for perf
-const IMAGE_DIR = ["public", "images"]; // relative to project root
+// ---------- CONFIG ----------
+const DEFAULT_PAGE_SIZE = 60;
+const MAX_PAGE_SIZE = 200;
+const IMAGE_DIR = ["public", "images"];
 const ACCEPT = /\.(png|jpe?g|webp|gif|avif)$/i;
 
-// --------- FS: list images with optional search ----------
+// ---------- FS ----------
 async function listImages(q?: string) {
   const dir = path.join(process.cwd(), ...IMAGE_DIR);
   let items: string[] = [];
@@ -27,15 +22,18 @@ async function listImages(q?: string) {
   } catch {
     return [];
   }
-
   const filtered = items.filter((f) => ACCEPT.test(f));
   if (!q) return filtered.sort();
-
   const needle = q.trim().toLowerCase();
   return filtered.filter((f) => f.toLowerCase().includes(needle)).sort();
 }
 
-// --------- flame background blobs -----------
+// safer URL for filenames with spaces/unicode
+function fileURL(name: string) {
+  return `/images/${encodeURIComponent(name)}`;
+}
+
+// ---------- UI bits ----------
 function FireBG() {
   return (
     <>
@@ -46,29 +44,29 @@ function FireBG() {
   );
 }
 
-// --------- tiny accent -----------
 function Mark() {
   return (
-    <span className="inline-block rounded-md bg-red-600/10 px-2 py-0.5 text-red-700 dark:text-red-300 border border-red-500/20 text-xs font-semibold">
+    <span
+      className="inline-block rounded-md border border-red-500/20 bg-red-600/10 px-2 py-0.5 text-xs font-semibold text-red-700 dark:text-red-300"
+      style={{ fontFamily: "var(--font-jbmono), ui-monospace, SFMono-Regular" }}
+    >
       ANIME
     </span>
   );
 }
 
-// --------- pagination helper ----------
 function pageURL(base: string, page: number, per: number, q?: string) {
-  const u = new URL(base, "http://x"); // base URL gets ignored; we only need query building
+  const u = new URL(base, "http://x");
   u.searchParams.set("page", String(page));
   u.searchParams.set("per", String(per));
   if (q) u.searchParams.set("q", q);
-  return u.search; // just return the ?query part
+  return u.search;
 }
 
-// --------- PAGE ----------
+// ---------- PAGE ----------
 export default async function Page({
   searchParams,
 }: {
-  // Next 15 passes it as Promise sometimes — support both
   searchParams: SP | Promise<SP>;
 }) {
   const sp = (await Promise.resolve(searchParams)) ?? {};
@@ -90,9 +88,8 @@ export default async function Page({
   const end = Math.min(start + per, total);
   const slice = all.slice(start, end);
 
-  // --- random header image (every reload) ---
   const headerPick = all.length ? all[randomInt(all.length)] : null;
-  const headerSrc = headerPick ? `/images/${headerPick}` : null;
+  const headerSrc = headerPick ? fileURL(headerPick) : null;
 
   return (
     <main className="relative min-h-[100dvh] overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 selection:bg-red-300 selection:text-black">
@@ -120,7 +117,10 @@ export default async function Page({
       <header className="relative mx-auto max-w-7xl px-4 pt-10 pb-6 sm:pt-14">
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <h1 className="text-4xl sm:text-5xl font-black leading-tight [text-wrap:balance]">
+            <h1
+              className="text-4xl sm:text-5xl font-extrabold leading-tight [text-wrap:balance]"
+              style={{ letterSpacing: "-0.02em" }}
+            >
               <span className="bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 bg-clip-text text-transparent drop-shadow">
                 Sleek Anime Gallery
               </span>
@@ -131,17 +131,20 @@ export default async function Page({
             </h1>
             <p className="mt-4 max-w-[65ch] text-lg leading-relaxed text-zinc-700 dark:text-zinc-300">
               Images auto-load from{" "}
-              <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-sm dark:bg-zinc-900">
+              <code
+                className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm dark:bg-zinc-900"
+                style={{ fontFamily: "var(--font-jbmono), ui-monospace" }}
+              >
                 /public/images
               </code>
-              . Pagination keeps it smooth even with 20k files. Hover a card to
-              instantly <strong>view</strong> or <strong>download</strong>.
+              . Pagination keeps it smooth even with 20k files. Hover a card to{" "}
+              <strong>view</strong> or <strong>download</strong>.
             </p>
           </div>
 
           {/* Random header image */}
           <div className="relative">
-            <div className="mx-auto max-w-md overflow-hidden rounded-2xl border-2 border-zinc-200 shadow-xl dark:border-zinc-800">
+            <div className="mx-auto max-w-md overflow-hidden rounded-2xl border border-zinc-200 shadow-xl dark:border-zinc-800">
               {headerSrc ? (
                 <img
                   src={headerSrc}
@@ -156,18 +159,20 @@ export default async function Page({
                 </div>
               )}
             </div>
-            {/* subtle corner flames */}
             <div className="pointer-events-none absolute -left-3 -top-3 h-10 w-10 rotate-12 rounded-lg bg-gradient-to-br from-red-500 to-rose-600 blur-[2px]" />
             <div className="pointer-events-none absolute -right-3 -bottom-3 h-10 w-10 -rotate-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 blur-[2px]" />
             {headerPick && (
-              <span className="absolute bottom-3 right-3 rounded-md bg-black/60 px-2 py-1 text-xs text-white backdrop-blur">
+              <span
+                className="absolute bottom-3 right-3 rounded-md bg-black/60 px-2 py-1 text-xs text-white backdrop-blur"
+                style={{ fontFamily: "var(--font-jbmono)" }}
+              >
                 {headerPick}
               </span>
             )}
           </div>
         </div>
 
-        {/* Controls & status */}
+        {/* Controls */}
         <div className="mt-6 rounded-xl border border-zinc-200/70 bg-white/70 p-3 shadow-sm backdrop-blur dark:border-zinc-800/60 dark:bg-zinc-900/60">
           <form method="get" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <label className="flex items-center gap-2 rounded-lg border border-zinc-200/70 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-900">
@@ -186,7 +191,7 @@ export default async function Page({
                 defaultValue={String(per)}
                 inputMode="numeric"
                 pattern="[0-9]*"
-                className="w-20 bg-transparent outline-none text-right"
+                className="w-20 bg-transparent text-right outline-none"
               />
             </label>
             <div className="flex items-center justify-end gap-2">
@@ -221,27 +226,32 @@ export default async function Page({
           <div className="rounded-xl border-2 border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
             <p className="text-zinc-600 dark:text-zinc-300">
               No images found. Drop files into{" "}
-              <code className="font-mono">/public/images</code>
+              <code
+                className="font-mono"
+                style={{ fontFamily: "var(--font-jbmono)" }}
+              >
+                /public/images
+              </code>
               {q ? <> or clear your search query.</> : null}
             </p>
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             {slice.map((name) => {
-              const src = `/images/${name}`;
+              const url = fileURL(name);
               return (
                 <article
                   key={name}
                   className="group relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
                 >
-                  {/* red inner frame + conic glow on hover */}
+                  {/* ring + subtle conic glow */}
                   <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-red-500/20 group-hover:ring-red-500/60" />
                   <div className="pointer-events-none absolute -inset-8 opacity-0 blur-2xl transition-opacity group-hover:opacity-40">
                     <div className="h-full w-full bg-[conic-gradient(from_120deg_at_50%_50%,_rgba(244,63,94,0.35),_rgba(234,88,12,0.35),_transparent_60%)]" />
                   </div>
 
                   <img
-                    src={src}
+                    src={url}
                     alt={name}
                     loading="lazy"
                     decoding="async"
@@ -250,15 +260,17 @@ export default async function Page({
 
                   {/* bottom bar */}
                   <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-3 py-2 text-xs dark:border-zinc-800">
-                    <div className="truncate">{name}</div>
+                    <div className="truncate max-w-[75%]" title={name}>
+                      {name}
+                    </div>
                     <Mark />
                   </div>
 
-                  {/* hover overlay actions */}
+                  {/* overlay actions */}
                   <div className="pointer-events-none absolute inset-0 grid place-items-center bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
                     <div className="pointer-events-auto flex gap-3">
                       <a
-                        href={src}
+                        href={url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="rounded-lg border-2 border-white/80 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur hover:bg-white/20"
@@ -266,8 +278,8 @@ export default async function Page({
                         View
                       </a>
                       <a
-                        href={src}
-                        download
+                        href={url}
+                        download={name}
                         className="rounded-lg border-2 border-red-500 bg-red-600/90 px-3 py-1.5 text-sm font-semibold text-white shadow-[0_3px_0_0_rgba(185,28,28,0.7)] hover:bg-red-600"
                       >
                         Download
@@ -291,4 +303,38 @@ export default async function Page({
             <a
               aria-disabled={page <= 1}
               href={page > 1 ? pageURL("?", page - 1, per, q) : "#"}
-   
+              className={`rounded-lg border px-3 py-2 text-sm ${
+                page > 1
+                  ? "border-zinc-300 bg-white hover:border-red-500/60 dark:border-zinc-700 dark:bg-zinc-900"
+                  : "pointer-events-none border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-600"
+              }`}
+            >
+              ← Prev
+            </a>
+            <a
+              aria-disabled={page >= totalPages}
+              href={page < totalPages ? pageURL("?", page + 1, per, q) : "#"}
+              className={`rounded-lg border px-3 py-2 text-sm ${
+                page < totalPages
+                  ? "border-zinc-300 bg-white hover:border-red-500/60 dark:border-zinc-700 dark:bg-zinc-900"
+                  : "pointer-events-none border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-600"
+              }`}
+            >
+              Next →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-zinc-200 bg-white/60 py-6 text-sm dark:border-zinc-800 dark:bg-zinc-950/60">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4">
+          <span>© {new Date().getFullYear()} Anime Gallery</span>
+          <span className="text-zinc-500">
+            Fire theme • Dark/Light • Pagination-ready
+          </span>
+        </div>
+      </footer>
+    </main>
+  );
+}
