@@ -1,4 +1,4 @@
-# anime-website
+# ANIME GALLERY WEBSITE
 
 Anime vibes, built with **Next.js**.  
 A single-page, dark/light themed site with fiery red styling, responsive layouts, and image galleries.  
@@ -10,7 +10,6 @@ A single-page, dark/light themed site with fiery red styling, responsive layouts
 ## ✨ Preview
 
 <img width="1474" height="845" alt="image" src="https://github.com/user-attachments/assets/d62a46b0-448e-4700-a678-18d95d96ea38" />
-
 <img width="1369" height="840" alt="image" src="https://github.com/user-attachments/assets/23ebc13f-94a1-47dc-906b-a5ff9d9a6da5" />
 
 ---
@@ -31,6 +30,12 @@ A single-page, dark/light themed site with fiery red styling, responsive layouts
 - **Tailwind CSS**  
 - **TypeScript**  
 - **Google Drive API (Service Account)**  
+
+---
+
+## 🌐 Live Demo
+
+👉 [View the live site here](https://anime-gallery-website.vercel.app/)  
 
 ---
 
