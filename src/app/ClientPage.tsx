@@ -96,12 +96,9 @@ export default function ClientPage({
               </span>
             </h1>
             <p className="mt-4 max-w-[65ch] text-lg leading-relaxed text-zinc-700 dark:text-zinc-300">
-              Images auto-load from{" "}
-              <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm dark:bg-zinc-900">
-                /public/images
-              </code>
-              . Pagination keeps it smooth even with 20k files. Hover a card to{" "}
-              <strong>view</strong> or <strong>download</strong>.
+              Seamless gallery experience with smart pagination—built to stay
+              fast even with very large libraries. Hover any card to{" "}
+              <strong>preview</strong> or <strong>download</strong>.
             </p>
           </div>
 
