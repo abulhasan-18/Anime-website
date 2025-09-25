@@ -107,7 +107,7 @@ export default function ClientPage({
           <div className="relative">
             <div className="mx-auto max-w-md overflow-hidden rounded-2xl border border-zinc-200 shadow-xl dark:border-zinc-800">
               {headerSrc ? (
-                <Image
+                <img
                   src={headerSrc}
                   alt={headerPick ?? "Header image"}
                   loading="eager"
@@ -177,7 +177,7 @@ export default function ClientPage({
           <div className="rounded-xl border-2 border-dashed border-zinc-300 p-10 text-center dark:border-zinc-700">
             <p className="text-zinc-600 dark:text-zinc-300">
               No images found. Drop files into{" "}
-              <code className="font-mono">/public/images</code>
+              <code className="font-mono">/images</code>
               {q ? <> or clear your search query.</> : null}
             </p>
           </div>
@@ -191,7 +191,7 @@ export default function ClientPage({
                   className="group relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
                 >
                   <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-red-500/20 group-hover:ring-red-500/60" />
-                  <Image
+                  <img
                     src={url}
                     alt={name}
                     loading="lazy"

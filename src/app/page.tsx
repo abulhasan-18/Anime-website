@@ -1,3 +1,4 @@
+// app/page.tsx (or wherever this Page is)
 import ClientPage from "./ClientPage";
 import { promises as fs } from "fs";
 import path from "path";
@@ -7,11 +8,18 @@ export const dynamic = "force-dynamic";
 
 const DEFAULT_PAGE_SIZE = 60;
 const MAX_PAGE_SIZE = 200;
-const IMAGE_DIR = ["public", "images"];
+
+// 🔁 change this to point to the top-level "images" folder
+const IMAGE_DIR = ["images"];
+
 const ACCEPT = /\.(png|jpe?g|webp|gif|avif)$/i;
 
+function imageRoot() {
+  return path.join(process.cwd(), ...IMAGE_DIR);
+}
+
 async function listImages(q?: string) {
-  const dir = path.join(process.cwd(), ...IMAGE_DIR);
+  const dir = imageRoot();
   let items: string[] = [];
   try {
     items = await fs.readdir(dir);
@@ -53,7 +61,7 @@ export default async function Page(props: any) {
 
   return (
     <ClientPage
-      images={slice}
+      images={slice} // just the filenames
       total={total}
       page={page}
       totalPages={totalPages}
