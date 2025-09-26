@@ -123,7 +123,7 @@ export default function ClientPage({
               <input
                 name="q"
                 defaultValue={q ?? ""}
-                placeholder="filename..."
+                placeholder="search photo..."
                 className="w-full bg-transparent outline-none placeholder:text-zinc-400"
               />
             </label>
