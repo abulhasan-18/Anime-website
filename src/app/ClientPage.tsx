@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   Download,
   Search,
@@ -56,6 +56,52 @@ function pageURL(base: string, page: number, per: number, q?: string) {
 const btn =
   "inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition active:translate-y-[1px] disabled:opacity-60 disabled:pointer-events-none";
 
+/* ---- Single gallery card that hides itself on error ---- */
+function GalleryCard({ id, name }: DriveItem) {
+  const [broken, setBroken] = useState(false);
+  if (broken) return null;
+
+  const viewURL = proxyViewURL(id);
+  const dlURL = proxyDownloadURL(id);
+
+  return (
+    <article className="group relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white/90 to-white/70 shadow-lg ring-1 ring-black/5 transition-all hover:-translate-y-1 hover:shadow-2xl dark:border-zinc-800/80 dark:from-zinc-900/90 dark:to-zinc-900/70">
+      <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-red-500/15 transition duration-300 group-hover:ring-red-500/45" />
+
+      {/* Image (9:16) */}
+      <div className="relative w-full aspect-[9/16]">
+        <img
+          src={viewURL}
+          alt={name}
+          loading="lazy"
+          decoding="async"
+          sizes="(min-width:1280px) 25vw, (min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+          className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:brightness-[1.07]"
+          onError={() => setBroken(true)} // ⬅️ vanish this tile on error
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-60" />
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between gap-2 border-t border-zinc-200/80 px-3 py-2 text-xs dark:border-zinc-800/80">
+        <div className="max-w-[70%] truncate" title={name}>
+          {name}
+        </div>
+        <a
+          href={dlURL}
+          download
+          className="inline-flex items-center gap-2 rounded-lg border border-transparent bg-gradient-to-br from-red-600 to-rose-600 px-3 py-1.5 font-medium text-white shadow-md ring-1 ring-black/10 transition hover:brightness-110 active:translate-y-[1px] dark:ring-white/10"
+          title={`Download ${name}`}
+          aria-label={`Download ${name}`}
+        >
+          <Download className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">Download</span>
+        </a>
+      </div>
+    </article>
+  );
+}
+
 export default function ClientPage({
   images,
   total,
@@ -67,8 +113,18 @@ export default function ClientPage({
   end,
   headerPick,
 }: ClientPageProps) {
-  const headerSrc = headerPick ? proxyViewURL(headerPick) : null;
-  const headerDL = headerPick ? proxyDownloadURL(headerPick) : null;
+  /* ---- Header fallback logic ---- */
+  const headerCandidates = useMemo(() => {
+    const ids = images.map((i) => i.id);
+    return headerPick
+      ? [headerPick, ...ids.filter((x) => x !== headerPick)]
+      : ids;
+  }, [headerPick, images]);
+
+  const [headerIdx, setHeaderIdx] = useState(0);
+  const currentHeaderId = headerCandidates[headerIdx];
+  const headerSrc = currentHeaderId ? proxyViewURL(currentHeaderId) : null;
+  const headerDL = currentHeaderId ? proxyDownloadURL(currentHeaderId) : null;
 
   return (
     <main className="relative min-h-[100dvh] overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 selection:bg-red-300 selection:text-black">
@@ -120,7 +176,7 @@ export default function ClientPage({
             </p>
           </div>
 
-          {/* Featured image (9:16) */}
+          {/* Featured image (9:16) with fallback */}
           <div className="relative">
             <div className="group mx-auto max-w-md overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xl ring-1 ring-black/5 dark:border-zinc-800/80 dark:bg-zinc-900">
               <div className="relative w-full aspect-[9/16]">
@@ -132,6 +188,11 @@ export default function ClientPage({
                     decoding="async"
                     sizes="(min-width:1024px) 28rem, 90vw"
                     className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                    onError={() =>
+                      setHeaderIdx((i) =>
+                        i + 1 < headerCandidates.length ? i + 1 : i
+                      )
+                    }
                   />
                 ) : (
                   <div className="grid h-full place-items-center bg-gradient-to-br from-red-600/20 via-rose-600/15 to-orange-500/20">
@@ -231,54 +292,9 @@ export default function ClientPage({
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-            {images.map(({ id, name }) => {
-              const viewURL = proxyViewURL(id);
-              const dlURL = proxyDownloadURL(id);
-
-              return (
-                <article
-                  key={id}
-                  className="group relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white/90 to-white/70 shadow-lg ring-1 ring-black/5 transition-all hover:-translate-y-1 hover:shadow-2xl dark:border-zinc-800/80 dark:from-zinc-900/90 dark:to-zinc-900/70"
-                >
-                  {/* animated border on hover */}
-                  <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-red-500/15 transition duration-300 group-hover:ring-red-500/45" />
-
-                  {/* Image (9:16) */}
-                  <div className="relative w-full aspect-[9/16]">
-                    <img
-                      src={viewURL}
-                      alt={name}
-                      loading="lazy"
-                      decoding="async"
-                      sizes="(min-width:1280px) 25vw, (min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-                      className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:brightness-[1.07]"
-                    />
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-60" />
-                  </div>
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between gap-2 border-t border-zinc-200/80 px-3 py-2 text-xs dark:border-zinc-800/80">
-                    <div
-                      className="max-w-[70%] truncate"
-                      title={name}
-                      aria-label={name}
-                    >
-                      {name}
-                    </div>
-                    <a
-                      href={dlURL}
-                      download
-                      className="inline-flex items-center gap-2 rounded-lg border border-transparent bg-gradient-to-br from-red-600 to-rose-600 px-3 py-1.5 font-medium text-white shadow-md ring-1 ring-black/10 transition hover:brightness-110 active:translate-y-[1px] dark:ring-white/10"
-                      title={`Download ${name}`}
-                      aria-label={`Download ${name}`}
-                    >
-                      <Download className="h-4 w-4" aria-hidden="true" />
-                      <span className="hidden sm:inline">Download</span>
-                    </a>
-                  </div>
-                </article>
-              );
-            })}
+            {images.map((item) => (
+              <GalleryCard key={item.id} {...item} />
+            ))}
           </div>
         )}
       </section>
