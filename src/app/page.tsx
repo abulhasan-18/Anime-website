@@ -18,6 +18,16 @@ function filterList(q?: string) {
   return all.filter((f) => f.name.toLowerCase().includes(needle));
 }
 
+// 🔀 Fisher–Yates shuffle (non-mutating)
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default async function Page({
   searchParams,
 }: {
@@ -31,16 +41,20 @@ export default async function Page({
   const page = Math.max(parseInt((sp.page as string) || "1", 10), 1);
   const q = (sp.q as string)?.trim() || undefined;
 
-  const all = filterList(q);
-  const total = all.length;
+  // 1) filter -> 2) shuffle -> 3) paginate
+  const filtered = filterList(q);
+  const shuffled = shuffle(filtered);
+
+  const total = shuffled.length;
   const totalPages = Math.max(Math.ceil(total / per), 1);
   const safePage = Math.min(page, totalPages);
 
   const start = (safePage - 1) * per;
   const end = Math.min(start + per, total);
-  const slice = all.slice(start, end);
+  const slice = shuffled.slice(start, end);
 
-  const headerPick = total ? all[Math.floor(Math.random() * total)].id : null;
+  // pick first from shuffled for consistency within the request
+  const headerPick = total ? shuffled[0].id : null;
 
   return (
     <ClientPage
